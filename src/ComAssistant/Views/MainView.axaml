@@ -1,0 +1,36 @@
+<Window
+    x:Class="ComAssistant.Views.MainView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="using:ComAssistant.ViewModels"
+    Title="ComAssistant"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    x:DataType="vm:MainViewModel"
+    Icon="/Assets/avalonia-logo.ico"
+    mc:Ignorable="d">
+
+    <Design.DataContext>
+        <!--
+            This only sets the DataContext for the previewer in an IDE,
+            to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs)
+        -->
+        <vm:MainViewModel />
+    </Design.DataContext>
+
+    <Grid RowDefinitions="Auto *">
+        <Menu Grid.Row="0">
+            <MenuItem Command="{Binding Path=AddComDebugViewCommand}" Header="添加COM口调试" />
+        </Menu>
+        <TabControl Grid.Row="1" ItemsSource="{Binding Path=ComDebugViewModels}">
+            <TabControl.ItemTemplate>
+                <DataTemplate DataType="vm:ComDebugViewModel">
+                    <TextBlock Text="{Binding Path=PortName}"></TextBlock>
+                </DataTemplate>
+            </TabControl.ItemTemplate>
+        </TabControl>
+    </Grid>
+
+</Window>

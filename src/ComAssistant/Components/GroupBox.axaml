@@ -1,0 +1,26 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:ComAssistant.Components">
+    <Design.PreviewWith>
+        <controls:GroupBox />
+    </Design.PreviewWith>
+
+    <Style Selector="controls|GroupBox">
+        <!-- Set Defaults -->
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Grid>
+                    <Border Margin="0,15,0,0">
+                        <ContentPresenter Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}" />
+                    </Border>
+                    <ContentControl Content="{TemplateBinding Header}" HorizontalAlignment="Left"
+                                    VerticalAlignment="Top"
+                                    Margin="10,0,0,0" Padding="5,5,5,5"
+                                    Background="{TemplateBinding ActualBackground}"
+                                    ContentTemplate="{TemplateBinding HeaderTemplate}" />
+                </Grid>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+</Styles>

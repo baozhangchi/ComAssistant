@@ -1,0 +1,59 @@
+<UserControl
+    x:Class="ComAssistant.Views.ComDebugView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:viewModels="clr-namespace:ComAssistant.ViewModels"
+    xmlns:extensions="clr-namespace:ComAssistant.Extensions"
+    xmlns:ports="clr-namespace:System.IO.Ports;assembly=System.IO.Ports"
+    xmlns:components="clr-namespace:ComAssistant.Components"
+    xmlns:text="clr-namespace:System.Text;assembly=System.Runtime"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    x:DataType="viewModels:ComDebugViewModel"
+    mc:Ignorable="d">
+    <Design.DataContext>
+        <viewModels:ComDebugViewModel />
+    </Design.DataContext>
+    <Grid RowDefinitions="Auto * *">
+        <StackPanel Orientation="Horizontal">
+            <Label Content="端口：" />
+            <ComboBox ItemsSource="{Binding Path=FreePorts}"
+                      SelectedItem="{Binding Path=PortName,UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}" />
+            <Label Content="波特率" />
+            <ComboBox ItemsSource="{Binding Path=BaudRates}"
+                      SelectedItem="{Binding Path=BaudRate,UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}" />
+            <Label Content="数据字节" />
+            <ComboBox ItemsSource="{Binding Path=DataBitsArray}"
+                      SelectedItem="{Binding Path=DataBits,UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}" />
+            <Label Content="奇偶校验位" />
+            <ComboBox ItemsSource="{extensions:EnumSource EnumType=ports:Parity}"
+                      SelectedItem="{Binding Path=Parity,UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}" />
+            <Label Content="停止位" />
+            <ComboBox ItemsSource="{extensions:EnumSource EnumType=ports:StopBits}"
+                      SelectedItem="{Binding Path=StopBits,UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}" />
+            <Label Content="字节编码" />
+            <ComboBox ItemsSource="{Binding Path=Encodings}"
+                      SelectedItem="{Binding Path=Encoding,UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate DataType="text:Encoding">
+                        <TextBlock Text="{Binding Path=EncodingName}"></TextBlock>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+            <Button Content="连接" Command="{Binding Path=ConnectCommand}"/>
+            <Button Content="断开连接" Command="{Binding Path=DisconnectCommand}" />
+        </StackPanel>
+        <Grid Grid.Row="1" ColumnDefinitions="* Auto">
+            <TextBox />
+            <StackPanel Orientation="Vertical" Grid.Column="1">
+                <Button Content="发送" />
+                <Button Content="发送文件" />
+            </StackPanel>
+        </Grid>
+        <components:GroupBox Grid.Row="2" Header="消息接收区">
+            <TextBox IsReadOnly="True" />
+        </components:GroupBox>
+    </Grid>
+</UserControl>
