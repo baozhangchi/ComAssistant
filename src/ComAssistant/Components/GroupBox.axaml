@@ -1,24 +1,38 @@
-<Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:controls="using:ComAssistant.Components">
+<Styles
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:ComAssistant.Components">
     <Design.PreviewWith>
         <controls:GroupBox />
     </Design.PreviewWith>
 
     <Style Selector="controls|GroupBox">
-        <!-- Set Defaults -->
+        <!--  Set Defaults  -->
+        <Setter Property="BorderBrush" Value="#99000000" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="3" />
+        <Setter Property="Padding" Value="10" />
         <Setter Property="Template">
             <ControlTemplate>
-                <Grid>
-                    <Border Margin="0,15,0,0">
-                        <ContentPresenter Content="{TemplateBinding Content}"
-                                          ContentTemplate="{TemplateBinding ContentTemplate}" />
-                    </Border>
-                    <ContentControl Content="{TemplateBinding Header}" HorizontalAlignment="Left"
-                                    VerticalAlignment="Top"
-                                    Margin="10,0,0,0" Padding="5,5,5,5"
-                                    Background="{TemplateBinding ActualBackground}"
-                                    ContentTemplate="{TemplateBinding HeaderTemplate}" />
+                <Grid x:Name="PART_Root">
+                    <Grid Margin="0,15,0,0">
+                        <ContentPresenter
+                            Margin="{TemplateBinding Padding}"
+                            Content="{TemplateBinding Content}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}" />
+                    </Grid>
+                    <Path
+                        x:Name="PART_Border"
+                        Stroke="{TemplateBinding BorderBrush}"
+                        StrokeThickness="{TemplateBinding BorderThickness}" />
+                    <ContentControl
+                        x:Name="PART_Header"
+                        Margin="10,0,0,0"
+                        Padding="5,5,5,5"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Top"
+                        Content="{TemplateBinding Header}"
+                        ContentTemplate="{TemplateBinding HeaderTemplate}" />
                 </Grid>
             </ControlTemplate>
         </Setter>

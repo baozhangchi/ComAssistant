@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.IO.Ports;
 using System.Linq;
 using System.Text;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -12,60 +13,73 @@ namespace ComAssistant.ViewModels;
 internal partial class ComDebugViewModel : ViewModelBase
 {
     [ObservableProperty] private int _baudRate = 115200;
-    [ObservableProperty] private RelayCommand _connectCommand;
+    [ObservableProperty] private bool _connected;
     [ObservableProperty] private int _dataBits = 8;
-    [ObservableProperty] private RelayCommand _disconnectCommand;
-    [ObservableProperty] private Encoding _encoding = Encoding.UTF8;
-
-    [ObservableProperty] private ObservableCollection<Encoding> _encodings = new();
-    [ObservableProperty] private string[] _freePorts = [];
+    [ObservableProperty] private List<string> _freePorts = new();
+    [ObservableProperty] private string? _message;
     [ObservableProperty] private Parity _parity = Parity.None;
     [ObservableProperty] private string? _portName;
-    [ObservableProperty] private string[] _ports = [];
+    [ObservableProperty] private Encoding _receiveEncoding = Encoding.UTF8;
+    [ObservableProperty] private Encoding _sendEncoding = Encoding.UTF8;
     [ObservableProperty] private SerialPort? _serialPort;
     [ObservableProperty] private StopBits _stopBits = StopBits.One;
-    [ObservableProperty] private List<string> _usedPorts = new();
 
     public ComDebugViewModel()
     {
-        WeakReferenceMessenger.Default.Register<ComDebugViewModel, string, string>(this, nameof(PortUsed), PortUsed);
-        WeakReferenceMessenger.Default.Register<ComDebugViewModel, string, string>(this, nameof(PortFree), PortFree);
-        WeakReferenceMessenger.Default.Register<ComDebugViewModel, string[], string>(this, nameof(PortsRefresh),
-            PortsRefresh);
         ConnectCommand = new RelayCommand(Connect, CanConnect);
         DisconnectCommand = new RelayCommand(Disconnect, CanDisconnect);
-        Encodings = new ObservableCollection<Encoding>(Encoding.GetEncodings().Select(x => x.GetEncoding()));
+        ClearHistoryCommand = new RelayCommand(ClearHistory, CanClearHistory);
+        SendCommand = new RelayCommand(Send, CanSend);
+        SendFileCommand = new RelayCommand(SendFile, CanSendFile);
     }
 
-    public static int[] BaudRates { get; } = { 2400, 4800, 9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600 };
-    public static int[] DataBitsArray { get; } = { 8, 9 };
+    public ObservableCollection<HistoryItemViewModel> HistoryItems { get; set; } = new();
 
-    private void PortFree(ComDebugViewModel recipient, string message)
+    private bool CanSendFile()
     {
-        if (recipient == this) return;
-
-        UsedPorts.Remove(message);
-        FreePorts = Ports.Except(UsedPorts).ToArray();
+        return Connected;
     }
 
-    partial void OnFreePortsChanged(string[] value)
+    private void SendFile()
     {
-        PortName = value?.FirstOrDefault();
     }
 
-    partial void OnUsedPortsChanged(List<string> value)
+    private bool CanSend()
     {
-        FreePorts = Ports.Except(UsedPorts).ToArray();
+        return !string.IsNullOrWhiteSpace(Message) && Connected;
     }
 
-    partial void OnPortsChanged(string[] value)
+    partial void OnMessageChanged(string? value)
     {
-        FreePorts = Ports.Except(UsedPorts).ToArray();
+        SendCommand.NotifyCanExecuteChanged();
+    }
+
+    private void Send()
+    {
+        var buffer = ReceiveEncoding.GetBytes(Message!);
+        SerialPort!.Write(buffer, 0, buffer.Length);
+        HistoryItems.Add(new HistoryItemViewModel(buffer, true, ReceiveEncoding));
+        ClearHistoryCommand.NotifyCanExecuteChanged();
+    }
+
+    private bool CanClearHistory()
+    {
+        return HistoryItems.Any();
+    }
+
+    private void ClearHistory()
+    {
+        HistoryItems.Clear();
+    }
+
+    partial void OnFreePortsChanged(List<string> value)
+    {
+        if (!Connected) PortName = value?.FirstOrDefault();
     }
 
     private bool CanDisconnect()
     {
-        return SerialPort != null && SerialPort.IsOpen;
+        return Connected;
     }
 
     private void Disconnect()
@@ -74,29 +88,26 @@ internal partial class ComDebugViewModel : ViewModelBase
         SerialPort!.Close();
         SerialPort!.Dispose();
         SerialPort = null;
-        WeakReferenceMessenger.Default.Send(PortName!, nameof(PortFree));
+        Connected = false;
+        WeakReferenceMessenger.Default.Send(PortName!, "PortFree");
         DisconnectCommand.NotifyCanExecuteChanged();
         ConnectCommand.NotifyCanExecuteChanged();
     }
 
     private bool CanConnect()
     {
-        if (SerialPort != null) return false;
-
         if (string.IsNullOrWhiteSpace(PortName)) return false;
-
-        if (FreePorts.Length == 0) return false;
-
-        return true;
+        return !Connected;
     }
 
     private void Connect()
     {
         SerialPort = new SerialPort(PortName, BaudRate, Parity, DataBits, StopBits);
-        SerialPort.Encoding = Encoding;
+        SerialPort.Encoding = SendEncoding;
         SerialPort.DataReceived += SerialPort_DataReceived;
         SerialPort.Open();
-        WeakReferenceMessenger.Default.Send(PortName!, nameof(PortUsed));
+        Connected = true;
+        WeakReferenceMessenger.Default.Send(PortName!, "PortUsed");
         DisconnectCommand.NotifyCanExecuteChanged();
         ConnectCommand.NotifyCanExecuteChanged();
     }
@@ -105,28 +116,27 @@ internal partial class ComDebugViewModel : ViewModelBase
     {
         var buffer = new byte[SerialPort!.BytesToRead];
         SerialPort.Read(buffer, 0, buffer.Length);
-        var message = Encoding.UTF8.GetString(buffer);
-        //Application.Current.Dispatcher.BeginInvoke(() =>
-        //{
-        //    HistoryItems.Add(new HistoryItem { Message = message, Source = true });
-        //    NotifyOfPropertyChange(nameof(CanClearHistory));
-        //});
-    }
-
-    private void PortsRefresh(ComDebugViewModel recipient, string[] message)
-    {
-        if (recipient == this) return;
-        if (Ports.Except(message).Any())
+        Dispatcher.UIThread.Post(() =>
         {
-            Ports = message;
-            FreePorts = Ports.Except(UsedPorts).ToArray();
-        }
+            HistoryItems.Add(new HistoryItemViewModel(buffer, false, SendEncoding));
+            ClearHistoryCommand.NotifyCanExecuteChanged();
+        });
     }
 
-    private void PortUsed(ComDebugViewModel recipient, string message)
+    public void SetFreePorts(string[] freePorts)
     {
-        if (recipient == this) return;
-        UsedPorts.Add(message);
-        FreePorts = Ports.Except(UsedPorts).ToArray();
+        var list = freePorts.ToList();
+        if (!string.IsNullOrWhiteSpace(PortName) && !freePorts.Contains(PortName)) list.Add(PortName);
+        FreePorts = list;
     }
+
+    #region Commands
+
+    [ObservableProperty] private RelayCommand _clearHistoryCommand;
+    [ObservableProperty] private RelayCommand _connectCommand;
+    [ObservableProperty] private RelayCommand _disconnectCommand;
+    [ObservableProperty] private RelayCommand _sendCommand;
+    [ObservableProperty] private RelayCommand _sendFileCommand;
+
+    #endregion
 }

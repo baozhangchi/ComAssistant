@@ -4,12 +4,17 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:views="clr-namespace:ComAssistant.Views"
     xmlns:vm="using:ComAssistant.ViewModels"
     Title="ComAssistant"
     d:DesignHeight="450"
     d:DesignWidth="800"
+    x:CompileBindings="True"
     x:DataType="vm:MainViewModel"
-    Icon="/Assets/avalonia-logo.ico"
+    Background="Transparent"
+    ExtendClientAreaToDecorationsHint="True"
+    Icon="/Assets/logo.ico"
+    TransparencyLevelHint="AcrylicBlur"
     mc:Ignorable="d">
 
     <Design.DataContext>
@@ -20,17 +25,44 @@
         <vm:MainViewModel />
     </Design.DataContext>
 
-    <Grid RowDefinitions="Auto *">
-        <Menu Grid.Row="0">
-            <MenuItem Command="{Binding Path=AddComDebugViewCommand}" Header="添加COM口调试" />
-        </Menu>
-        <TabControl Grid.Row="1" ItemsSource="{Binding Path=ComDebugViewModels}">
-            <TabControl.ItemTemplate>
-                <DataTemplate DataType="vm:ComDebugViewModel">
-                    <TextBlock Text="{Binding Path=PortName}"></TextBlock>
-                </DataTemplate>
-            </TabControl.ItemTemplate>
-        </TabControl>
-    </Grid>
+    <Panel>
+        <ExperimentalAcrylicBorder IsHitTestVisible="False">
+            <ExperimentalAcrylicBorder.Material>
+                <ExperimentalAcrylicMaterial
+                    BackgroundSource="Digger"
+                    MaterialOpacity="0.65"
+                    TintColor="White"
+                    TintOpacity="1" />
+            </ExperimentalAcrylicBorder.Material>
+        </ExperimentalAcrylicBorder>
+
+        <Grid RowDefinitions="Auto *">
+            <Menu Grid.Row="0" HorizontalAlignment="Left">
+                <MenuItem Command="{Binding Path=AddComDebugViewCommand}" Header="添加COM口调试" />
+            </Menu>
+            <TabControl Grid.Row="1" ItemsSource="{Binding Path=ComDebugViewModels}">
+                <TabControl.ItemTemplate>
+                    <DataTemplate DataType="vm:ComDebugViewModel">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{Binding Path=PortName}" />
+                            <Button
+                                Padding="0"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Background="Transparent"
+                                Command="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}, Path=((vm:MainViewModel)DataContext).RemoveComDebugViewCommand}"
+                                CommandParameter="{Binding Path=.}">
+                                <PathIcon
+                                    Width="10"
+                                    Height="10"
+                                    Data="{StaticResource Close}"
+                                    Foreground="Blue" />
+                            </Button>
+                        </StackPanel>
+                    </DataTemplate>
+                </TabControl.ItemTemplate>
+            </TabControl>
+        </Grid>
+    </Panel>
 
 </Window>

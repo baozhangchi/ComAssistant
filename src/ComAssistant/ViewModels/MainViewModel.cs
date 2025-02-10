@@ -1,25 +1,24 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Timers;
-using CommunityToolkit.Mvvm.ComponentModel;
 using System.IO.Ports;
 using System.Linq;
-using CommunityToolkit.Mvvm.Input;
-using Avalonia;
-using Avalonia.Controls;
-using CommunityToolkit.Mvvm.Messaging;
+using System.Timers;
 using Avalonia.Threading;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 
 namespace ComAssistant.ViewModels;
 
 internal partial class MainViewModel : ViewModelBase
 {
     private readonly Timer _timer;
-
-    [ObservableProperty] private string[] _ports = [];
-    [ObservableProperty] private List<string> _usedPorts = new();
     [ObservableProperty] private RelayCommand _addComDebugViewCommand;
     [ObservableProperty] private ObservableCollection<ComDebugViewModel> _comDebugViewModels;
+
+    [ObservableProperty] private string[] _ports = [];
+    [ObservableProperty] private RelayCommand<ComDebugViewModel> _removeComDebugViewCommand;
+    [ObservableProperty] private List<string> _usedPorts = new();
 
     public MainViewModel()
     {
@@ -29,17 +28,29 @@ internal partial class MainViewModel : ViewModelBase
         _timer = new Timer(100);
         _timer.Elapsed += Timer_Elapsed;
         AddComDebugViewCommand = new RelayCommand(AddComDebugView, CanAddComDebugView);
+        RemoveComDebugViewCommand = new RelayCommand<ComDebugViewModel>(RemoveComDebugView);
         _timer.Start();
+    }
+
+    private void RemoveComDebugView(ComDebugViewModel? viewModel)
+    {
+        if (viewModel != null)
+        {
+            if (viewModel.DisconnectCommand.CanExecute(null)) viewModel.DisconnectCommand?.Execute(null);
+            ComDebugViewModels.Remove(viewModel);
+        }
     }
 
     private void PortFree(MainViewModel recipient, string message)
     {
         UsedPorts.Remove(message);
+        foreach (var viewModel in ComDebugViewModels) viewModel.SetFreePorts(Ports.Except(UsedPorts).ToArray());
     }
 
     private void PortUsed(MainViewModel recipient, string message)
     {
         UsedPorts.Add(message);
+        foreach (var viewModel in ComDebugViewModels) viewModel.SetFreePorts(Ports.Except(UsedPorts).ToArray());
     }
 
     private bool CanAddComDebugView()
@@ -50,8 +61,7 @@ internal partial class MainViewModel : ViewModelBase
     private void AddComDebugView()
     {
         var viewModel = new ComDebugViewModel();
-        viewModel.Ports = Ports;
-        viewModel.UsedPorts = UsedPorts;
+        viewModel.SetFreePorts(Ports.Except(UsedPorts).ToArray());
         ComDebugViewModels.Add(viewModel);
     }
 

@@ -1,18 +1,35 @@
-<Application xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             x:Class="ComAssistant.App"
-             xmlns:local="using:ComAssistant"
-             RequestedThemeVariant="Default">
-    <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+<Application
+    x:Class="ComAssistant.App"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:components="clr-namespace:ComAssistant.Components"
+    xmlns:local="using:ComAssistant"
+    RequestedThemeVariant="Default">
+    <!--  "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options.  -->
 
     <Application.DataTemplates>
         <local:ViewLocator />
     </Application.DataTemplates>
+    <Application.Resources>
+        <StreamGeometry x:Key="Close">M100 91.1625L145.575 45.575L154.425 54.4125L108.8375 100L154.425 145.575L145.5875 154.425L100 108.8375L54.425 154.425L45.5875 145.575L91.1625 100L45.5875 54.425L54.425 45.575L100 91.1625z</StreamGeometry>
 
+    </Application.Resources>
     <Application.Styles>
-        <StyleInclude Source="Components/GroupBox.axaml"></StyleInclude>
+        <StyleInclude Source="Components/GroupBox.axaml" />
         <Style Selector="Label">
-            <Setter Property="VerticalAlignment" Value="Center"></Setter>
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="TextBox">
+            <Setter Property="Margin" Value="5" />
+        </Style>
+        <Style Selector="ComboBox">
+            <Setter Property="Margin" Value="5" />
+        </Style>
+        <Style Selector="Button">
+            <Setter Property="Margin" Value="5" />
+        </Style>
+        <Style Selector="components|GroupBox">
+            <Setter Property="Margin" Value="5" />
         </Style>
         <FluentTheme />
     </Application.Styles>

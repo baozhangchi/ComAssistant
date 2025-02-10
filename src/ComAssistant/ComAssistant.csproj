@@ -3,14 +3,35 @@
 		<OutputType>WinExe</OutputType>
 		<TargetFramework>net9.0</TargetFramework>
 		<Nullable>enable</Nullable>
-		<BuiltInComInteropSupport>true</BuiltInComInteropSupport>
 		<ApplicationManifest>app.manifest</ApplicationManifest>
 		<AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
-		<PublishTrimmed>true</PublishTrimmed>
+		<PublishAot Condition="'$(Configuration)'=='Release'">true</PublishAot>
+		<BuiltInComInteropSupport Condition="'$(Configuration)'!='Release'">true</BuiltInComInteropSupport>
+		<TrimMode>link</TrimMode>
+		<ApplicationIcon>Assets\logo.ico</ApplicationIcon>
 	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+		<InvariantGlobalization>true</InvariantGlobalization>
+		<!--支持在Windows XP或更高版本的Windows操作系统上运行,XP下尝试Ava失败-->
+		<WindowsSupportedOSPlatformVersion>5.1</WindowsSupportedOSPlatformVersion>
+		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
+		<TargetPlatformMinVersion>5.1</TargetPlatformMinVersion>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
+		<InvariantGlobalization>true</InvariantGlobalization>
+		<!--支持在Windows XP或更高版本的Windows操作系统上运行,XP下尝试Ava失败-->
+		<WindowsSupportedOSPlatformVersion>5.1</WindowsSupportedOSPlatformVersion>
+		<RuntimeIdentifier>win-x86</RuntimeIdentifier>
+		<TargetPlatformMinVersion>5.1</TargetPlatformMinVersion>
+	</PropertyGroup>
+	<ItemGroup>
+		<TrimmerRootDescriptor Include="Properties/Roots.xml" />
+		<RdXmlFile Include="Properties/rd.xml" />
+	</ItemGroup>
 
 	<ItemGroup>
-		<TrimmerRootDescriptor Include="Roots.xml" />
+		<!-- Preserve Avalonia types for reflection -->
+		<TrimmerRootAssembly Include="Avalonia.Themes.Fluent" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -19,23 +40,26 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Avalonia" Version="11.2.1" />
-		<PackageReference Include="Avalonia.Desktop" Version="11.2.1" />
-		<PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.1" />
-		<PackageReference Include="Avalonia.Fonts.Inter" Version="11.2.1" />
-		<!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
-		<PackageReference Include="Avalonia.Diagnostics" Version="11.2.1">
-			<IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
-			<PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
-		</PackageReference>
-		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1" />
-		<PackageReference Include="System.IO.Ports" Version="9.0.1" />
-		<PackageReference Include="System.Text.Encoding.CodePages" Version="9.0.1" />
+	  <Content Include="Assets\logo.ico" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Compile Update="Views\MainView.axaml.cs">
-	    <DependentUpon>MainView.axaml</DependentUpon>
-	  </Compile>
+		<PackageReference Include="VC-LTL" Version="5.1.1" />
+		<PackageReference Include="YY-Thunks" Version="1.1.5" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Avalonia" Version="11.2.3" />
+		<PackageReference Include="Avalonia.Desktop" Version="11.2.3" />
+		<PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.3" />
+		<PackageReference Include="Avalonia.Fonts.Inter" Version="11.2.3" />
+		<!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
+		<PackageReference Include="Avalonia.Diagnostics" Version="11.2.3">
+			<IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
+			<PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
+		</PackageReference>
+		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+		<PackageReference Include="System.IO.Ports" Version="9.0.1" />
+		<PackageReference Include="System.Text.Encoding.CodePages" Version="9.0.1" />
 	</ItemGroup>
 </Project>

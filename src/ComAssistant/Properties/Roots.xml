@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<linker>
+	<assembly fullname="ComAssistant">
+		<type fullname="ComAssistant.ViewModels*" preserve="all"/>
+		<type fullname="ComAssistant.Views*" preserve="all"/>
+	</assembly>
+</linker>
