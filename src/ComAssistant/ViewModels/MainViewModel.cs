@@ -1,9 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.IO.Ports;
 using System.Linq;
 using System.Timers;
 using Avalonia.Threading;
+using ComAssistant.Lang;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -22,13 +24,26 @@ internal partial class MainViewModel : ViewModelBase
 
     public MainViewModel()
     {
-        WeakReferenceMessenger.Default.Register<MainViewModel, string, string>(this, nameof(PortUsed), PortUsed);
-        WeakReferenceMessenger.Default.Register<MainViewModel, string, string>(this, nameof(PortFree), PortFree);
         ComDebugViewModels = new ObservableCollection<ComDebugViewModel>();
-        _timer = new Timer(100);
-        _timer.Elapsed += Timer_Elapsed;
         AddComDebugViewCommand = new RelayCommand(AddComDebugView, CanAddComDebugView);
         RemoveComDebugViewCommand = new RelayCommand<ComDebugViewModel>(RemoveComDebugView);
+        SwitchLanguageCommand = new RelayCommand<string>(SwitchLanguage);
+        _timer = new Timer(100);
+        _timer.Elapsed += Timer_Elapsed;
+    }
+
+    public RelayCommand<string> SwitchLanguageCommand { get; }
+
+    private void SwitchLanguage(string? lan)
+    {
+        I18nManager.Instance.Culture = CultureInfo.GetCultureInfo(lan);
+    }
+
+    protected override void OnViewLoaded()
+    {
+        base.OnViewLoaded();
+        WeakReferenceMessenger.Default.Register<MainViewModel, string, string>(this, nameof(PortUsed), PortUsed);
+        WeakReferenceMessenger.Default.Register<MainViewModel, string, string>(this, nameof(PortFree), PortFree);
         _timer.Start();
     }
 
@@ -36,7 +51,7 @@ internal partial class MainViewModel : ViewModelBase
     {
         if (viewModel != null)
         {
-            if (viewModel.DisconnectCommand.CanExecute(null)) viewModel.DisconnectCommand?.Execute(null);
+            if (viewModel.DisconnectCommand.CanExecute(null)) viewModel.DisconnectCommand.Execute(null);
             ComDebugViewModels.Remove(viewModel);
         }
     }
@@ -44,13 +59,23 @@ internal partial class MainViewModel : ViewModelBase
     private void PortFree(MainViewModel recipient, string message)
     {
         UsedPorts.Remove(message);
-        foreach (var viewModel in ComDebugViewModels) viewModel.SetFreePorts(Ports.Except(UsedPorts).ToArray());
+        foreach (var viewModel in ComDebugViewModels)
+        {
+            var ports = Ports.Except(UsedPorts).ToList();
+            if (!string.IsNullOrWhiteSpace(viewModel.PortName) && viewModel.Connected) ports.Add(viewModel.PortName);
+            viewModel.SetFreePorts(ports.ToArray());
+        }
     }
 
     private void PortUsed(MainViewModel recipient, string message)
     {
         UsedPorts.Add(message);
-        foreach (var viewModel in ComDebugViewModels) viewModel.SetFreePorts(Ports.Except(UsedPorts).ToArray());
+        foreach (var viewModel in ComDebugViewModels)
+        {
+            var ports = Ports.Except(UsedPorts).ToList();
+            if (!string.IsNullOrWhiteSpace(viewModel.PortName) && viewModel.Connected) ports.Add(viewModel.PortName);
+            viewModel.SetFreePorts(ports.ToArray());
+        }
     }
 
     private bool CanAddComDebugView()
@@ -68,6 +93,12 @@ internal partial class MainViewModel : ViewModelBase
     partial void OnPortsChanged(string[] value)
     {
         WeakReferenceMessenger.Default.Send(value, "PortsRefresh");
+    }
+
+    protected override void OnViewUnloaded()
+    {
+        _timer.Stop();
+        base.OnViewUnloaded();
     }
 
     private void Timer_Elapsed(object? sender, ElapsedEventArgs e)

@@ -24,43 +24,85 @@ public class GroupBox : HeaderedContentControl
         _headerPart = this.GetTemplateChildren().SingleOrDefault(x => x.Name == "PART_Header") as ContentControl;
         _borderPart = this.GetTemplateChildren().SingleOrDefault(x => x.Name == "PART_Border") as Path;
         _rootPart = this.GetTemplateChildren().SingleOrDefault(x => x.Name == "PART_Root") as Grid;
-        //_headerPart = this.FindControl<ContentControl>("PART_Header");
-        //_borderPart = this.FindControl<Path>("PART_Border");
-        //_rootPart = this.FindControl<Grid>("PART_Root");
+        SetBorder();
+    }
+
+    protected override void OnLoaded(RoutedEventArgs e)
+    {
+        base.OnLoaded(e);
+        SetBorder();
     }
 
     protected override void OnSizeChanged(SizeChangedEventArgs e)
     {
         base.OnSizeChanged(e);
-        if (_headerPart != null && _rootPart != null)
+        SetBorder();
+    }
+
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+        switch (change.Property.Name)
         {
-            var top = (_headerPart.Bounds.Bottom - _headerPart.Bounds.Top) / 2;
-            var left = Margin.Left;
-            var bottom = this.Bounds.Bottom - Margin.Bottom;
-            var right = this.Bounds.Right - Margin.Right;
-            var startPoint = new Point(_headerPart.Bounds.Left, top);
-            var endPoint = new Point(_headerPart.Bounds.Right, top);
-            var pathFigure = new PathFigure { StartPoint = startPoint, Segments = new PathSegments(), IsClosed = false, IsFilled = false };
-            pathFigure.Segments.Add(new LineSegment() { Point = new Point(CornerRadius.TopLeft, top) });
-            pathFigure.Segments.Add(new ArcSegment() { Point = new Point(left, CornerRadius.TopLeft + top), Size = new Size(CornerRadius.TopLeft, CornerRadius.TopLeft), IsLargeArc = false, RotationAngle = 90, SweepDirection = SweepDirection.Clockwise });
-            //pathFigure.Segments.Add(new LineSegment() { Point = new Point(left, bottom - CornerRadius.BottomLeft) });
-            //pathFigure.Segments.Add(new ArcSegment() { Point = new Point(left + CornerRadius.TopLeft, bottom), Size = new Size(CornerRadius.BottomLeft, CornerRadius.BottomLeft), IsLargeArc = false, RotationAngle = 90, SweepDirection = SweepDirection.CounterClockwise });
-            //pathFigure.Segments.Add(new LineSegment() { Point = new Point(right - CornerRadius.BottomRight, bottom) });
-            //pathFigure.Segments.Add(new ArcSegment() { Point = new Point(right, bottom - CornerRadius.BottomRight), Size = new Size(CornerRadius.BottomRight, CornerRadius.BottomRight), IsLargeArc = false, RotationAngle = 90, SweepDirection = SweepDirection.CounterClockwise });
-            //pathFigure.Segments.Add(new LineSegment() { Point = new Point(right, top + CornerRadius.TopRight) });
-            //pathFigure.Segments.Add(new ArcSegment() { Point = new Point(right - CornerRadius.TopRight, top), Size = new Size(CornerRadius.BottomRight, CornerRadius.BottomRight), IsLargeArc = false, RotationAngle = 90, SweepDirection = SweepDirection.CounterClockwise });
-            //pathFigure.Segments.Add(new LineSegment() { Point = new Point(endPoint.X, top) });
-            var geometry = new PathGeometry
-            {
-                Figures = new PathFigures { pathFigure }
-            };
-            if (_borderPart != null)
-            {
-                _borderPart.Data = geometry;
-                _borderPart.StrokeThickness = new List<double>()
-                        { BorderThickness.Right, BorderThickness.Bottom, BorderThickness.Left, BorderThickness.Top }
-                    .Average();
-            }
+            case nameof(CornerRadius):
+                SetBorder();
+                break;
+            case nameof(BorderThickness):
+                SetBorder();
+                break;
         }
+    }
+
+    private void SetBorder()
+    {
+        if (_headerPart != null && _rootPart != null && _borderPart != null)
+        {
+            _headerPart.Margin = new Thickness(CornerRadius.BottomLeft + 10, 0, 0, 0);
+            var top = (_headerPart.Bounds.Bottom - _headerPart.Bounds.Top) / 2;
+            var left = 0;
+            var bottom = _borderPart.Bounds.Bottom;
+            var right = _borderPart.Bounds.Right;
+            var startPoint = new Point(CornerRadius.BottomLeft + 10, top);
+            var endPoint = new Point(CornerRadius.BottomLeft + 10 + _headerPart.Bounds.Width, top);
+            var path = $"M{startPoint.X} {startPoint.Y}";
+            path += $" L{CornerRadius.TopLeft} {startPoint.Y}";
+            if (CornerRadius.TopLeft > 0)
+            {
+                path += $" A{CornerRadius.TopLeft} {CornerRadius.TopLeft} 0 0 0 {left} {CornerRadius.TopLeft + startPoint.Y}";
+            }
+
+            path += $" L0 {bottom - CornerRadius.BottomLeft}";
+
+            if (CornerRadius.BottomLeft > 0)
+            {
+                path += $" A{CornerRadius.BottomLeft} {CornerRadius.BottomLeft} 0 0 0 {CornerRadius.BottomLeft} {bottom}";
+            }
+
+            path += $" L{right - CornerRadius.BottomRight} {bottom}";
+
+            if (CornerRadius.BottomRight > 0)
+            {
+                path += $" A{CornerRadius.BottomRight} {CornerRadius.BottomRight} 0 0 0 {right} {bottom - CornerRadius.BottomRight}";
+            }
+
+            path += $" L{right} {top + CornerRadius.TopRight}";
+
+            if (CornerRadius.TopRight > 0)
+            {
+                path += $" A{CornerRadius.TopRight} {CornerRadius.TopRight} 0 0 0 {right - CornerRadius.TopRight} {top}";
+            }
+
+            path += $" L{endPoint.X} {endPoint.Y}";
+
+            _borderPart.Data = PathGeometry.Parse(path);
+            _borderPart.StrokeThickness = new List<double>()
+                    { BorderThickness.Right, BorderThickness.Bottom, BorderThickness.Left, BorderThickness.Top }
+                .Average();
+        }
+    }
+
+    protected override Size MeasureOverride(Size availableSize)
+    {
+        return base.MeasureOverride(availableSize);
     }
 }

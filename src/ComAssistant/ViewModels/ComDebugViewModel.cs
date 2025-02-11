@@ -17,6 +17,7 @@ internal partial class ComDebugViewModel : ViewModelBase
     [ObservableProperty] private int _dataBits = 8;
     [ObservableProperty] private List<string> _freePorts = new();
     [ObservableProperty] private string? _message;
+    [ObservableProperty] private bool _notConnected = true;
     [ObservableProperty] private Parity _parity = Parity.None;
     [ObservableProperty] private string? _portName;
     [ObservableProperty] private Encoding _receiveEncoding = Encoding.UTF8;
@@ -30,25 +31,16 @@ internal partial class ComDebugViewModel : ViewModelBase
         DisconnectCommand = new RelayCommand(Disconnect, CanDisconnect);
         ClearHistoryCommand = new RelayCommand(ClearHistory, CanClearHistory);
         SendCommand = new RelayCommand(Send, CanSend);
-        SendFileCommand = new RelayCommand(SendFile, CanSendFile);
     }
 
     public ObservableCollection<HistoryItemViewModel> HistoryItems { get; set; } = new();
-
-    private bool CanSendFile()
-    {
-        return Connected;
-    }
-
-    private void SendFile()
-    {
-    }
 
     private bool CanSend()
     {
         return !string.IsNullOrWhiteSpace(Message) && Connected;
     }
 
+    // ReSharper disable once UnusedParameterInPartialMethod
     partial void OnMessageChanged(string? value)
     {
         SendCommand.NotifyCanExecuteChanged();
@@ -56,9 +48,10 @@ internal partial class ComDebugViewModel : ViewModelBase
 
     private void Send()
     {
-        var buffer = ReceiveEncoding.GetBytes(Message!);
+        var buffer = SendEncoding.GetBytes(Message!);
         SerialPort!.Write(buffer, 0, buffer.Length);
-        HistoryItems.Add(new HistoryItemViewModel(buffer, true, ReceiveEncoding));
+        HistoryItems.Add(new HistoryItemViewModel(buffer, true, SendEncoding));
+        Message = string.Empty;
         ClearHistoryCommand.NotifyCanExecuteChanged();
     }
 
@@ -70,11 +63,7 @@ internal partial class ComDebugViewModel : ViewModelBase
     private void ClearHistory()
     {
         HistoryItems.Clear();
-    }
-
-    partial void OnFreePortsChanged(List<string> value)
-    {
-        if (!Connected) PortName = value?.FirstOrDefault();
+        ClearHistoryCommand.NotifyCanExecuteChanged();
     }
 
     private bool CanDisconnect()
@@ -89,6 +78,7 @@ internal partial class ComDebugViewModel : ViewModelBase
         SerialPort!.Dispose();
         SerialPort = null;
         Connected = false;
+        NotConnected = !Connected;
         WeakReferenceMessenger.Default.Send(PortName!, "PortFree");
         DisconnectCommand.NotifyCanExecuteChanged();
         ConnectCommand.NotifyCanExecuteChanged();
@@ -107,6 +97,7 @@ internal partial class ComDebugViewModel : ViewModelBase
         SerialPort.DataReceived += SerialPort_DataReceived;
         SerialPort.Open();
         Connected = true;
+        NotConnected = !Connected;
         WeakReferenceMessenger.Default.Send(PortName!, "PortUsed");
         DisconnectCommand.NotifyCanExecuteChanged();
         ConnectCommand.NotifyCanExecuteChanged();
@@ -126,8 +117,8 @@ internal partial class ComDebugViewModel : ViewModelBase
     public void SetFreePorts(string[] freePorts)
     {
         var list = freePorts.ToList();
-        if (!string.IsNullOrWhiteSpace(PortName) && !freePorts.Contains(PortName)) list.Add(PortName);
         FreePorts = list;
+        if (!Connected) PortName = freePorts.FirstOrDefault();
     }
 
     #region Commands
@@ -136,7 +127,6 @@ internal partial class ComDebugViewModel : ViewModelBase
     [ObservableProperty] private RelayCommand _connectCommand;
     [ObservableProperty] private RelayCommand _disconnectCommand;
     [ObservableProperty] private RelayCommand _sendCommand;
-    [ObservableProperty] private RelayCommand _sendFileCommand;
 
     #endregion
 }

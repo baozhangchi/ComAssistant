@@ -5,6 +5,7 @@
     xmlns:comAssistant="clr-namespace:ComAssistant"
     xmlns:components="clr-namespace:ComAssistant.Components"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:lang="clr-namespace:ComAssistant.Lang"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:text="clr-namespace:System.Text;assembly=System.Runtime"
     xmlns:viewModels="clr-namespace:ComAssistant.ViewModels"
@@ -16,57 +17,64 @@
     <Design.DataContext>
         <viewModels:ComDebugViewModel />
     </Design.DataContext>
-    <Grid RowDefinitions="Auto Auto *">
+    <Grid RowDefinitions="Auto * 150">
         <StackPanel Orientation="Horizontal">
-            <Label Content="端口：" />
-            <ComboBox ItemsSource="{Binding Path=FreePorts}" SelectedItem="{Binding Path=PortName, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
-            <Label Content="波特率" />
-            <ComboBox ItemsSource="{Binding Source={x:Static comAssistant:GlobalCache.Instance}, Path=BaudRates}" SelectedItem="{Binding Path=BaudRate, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
-            <Label Content="数据字节" />
-            <ComboBox ItemsSource="{Binding Source={x:Static comAssistant:GlobalCache.Instance}, Path=DataBitsArray}" SelectedItem="{Binding Path=DataBits, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
-            <Label Content="奇偶校验位" />
-            <ComboBox ItemsSource="{Binding Source={x:Static comAssistant:GlobalCache.Instance}, Path=ParitySource}" SelectedItem="{Binding Path=Parity, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
-            <Label Content="停止位" />
-            <ComboBox ItemsSource="{Binding Source={x:Static comAssistant:GlobalCache.Instance}, Path=StopBitsSource}" SelectedItem="{Binding Path=StopBits, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
-            <Label Content="文本编码" />
-            <ComboBox ItemsSource="{Binding Source={x:Static comAssistant:GlobalCache.Instance}, Path=Encodings}" SelectedItem="{Binding Path=SendEncoding, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}">
-                <ComboBox.ItemTemplate>
-                    <DataTemplate DataType="text:Encoding">
-                        <TextBlock Text="{Binding Path=EncodingName}" />
-                    </DataTemplate>
-                </ComboBox.ItemTemplate>
-            </ComboBox>
-            <Button Command="{Binding Path=ConnectCommand}" Content="连接" />
-            <Button Command="{Binding Path=DisconnectCommand}" Content="断开连接" />
+            <StackPanel IsEnabled="{Binding Path=NotConnected}" Orientation="Horizontal">
+                <Label Content="{comAssistant:I18n Key=COM_PORT_NAME}" />
+                <ComboBox ItemsSource="{Binding Path=FreePorts}" SelectedItem="{Binding Path=PortName, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
+                <Label Content="{comAssistant:I18n Key=COM_BAUD_RATES}" />
+                <ComboBox ItemsSource="{Binding Source={x:Static comAssistant:GlobalCache.Instance}, Path=BaudRates}" SelectedItem="{Binding Path=BaudRate, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
+                <Label Content="{comAssistant:I18n Key=COM_DATA_BITS}" />
+                <ComboBox ItemsSource="{Binding Source={x:Static comAssistant:GlobalCache.Instance}, Path=DataBitsArray}" SelectedItem="{Binding Path=DataBits, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
+                <Label Content="{comAssistant:I18n Key=COM_PARITY}" />
+                <ComboBox ItemsSource="{Binding Source={x:Static comAssistant:GlobalCache.Instance}, Path=ParitySource}" SelectedItem="{Binding Path=Parity, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
+                <Label Content="{comAssistant:I18n Key=COM_STOP_BITS}" />
+                <ComboBox ItemsSource="{Binding Source={x:Static comAssistant:GlobalCache.Instance}, Path=StopBitsSource}" SelectedItem="{Binding Path=StopBits, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
+                <Label Content="{comAssistant:I18n Key=COM_ENCODING}" />
+                <ComboBox ItemsSource="{Binding Source={x:Static comAssistant:GlobalCache.Instance}, Path=Encodings}" SelectedItem="{Binding Path=SendEncoding, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate DataType="text:Encoding">
+                            <TextBlock Text="{Binding Path=EncodingName}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+            </StackPanel>
+            <Button Command="{Binding Path=ConnectCommand}" Content="{comAssistant:I18n Key=COM_CONNECT}" />
+            <Button Command="{Binding Path=DisconnectCommand}" Content="{comAssistant:I18n Key=COM_DISCONNECT}" />
         </StackPanel>
         <Grid Grid.Row="1" ColumnDefinitions="* Auto">
-            <TextBox Text="{Binding Path=Message, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" TextWrapping="Wrap" />
-            <StackPanel Grid.Column="1" Orientation="Vertical">
+            <components:GroupBox>
+                <components:GroupBox.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock VerticalAlignment="Center" Text="{comAssistant:I18n Key=MESSAGE_HISTORY}" />
+                    </StackPanel>
+                </components:GroupBox.Header>
+                <ScrollViewer>
+                    <ItemsControl ItemsSource="{Binding Path=HistoryItems}" />
+                </ScrollViewer>
+            </components:GroupBox>
+        </Grid>
+        <Grid Grid.Row="2" RowDefinitions="* Auto">
+            <TextBox
+                IsEnabled="{Binding Path=Connected}"
+                Text="{Binding Path=Message, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                TextWrapping="Wrap" />
+            <StackPanel
+                Grid.Row="1"
+                HorizontalAlignment="Right"
+                Orientation="Horizontal">
+                <Button
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Center"
+                    Command="{Binding Path=ClearHistoryCommand}"
+                    Content="{comAssistant:I18n Key=MESSAGE_HISTORY_CLEAR}" />
                 <Button
                     HorizontalAlignment="Stretch"
                     HorizontalContentAlignment="Center"
                     Command="{Binding Path=SendCommand}"
-                    Content="发送" />
-                <Button
-                    HorizontalAlignment="Stretch"
-                    HorizontalContentAlignment="Center"
-                    Command="{Binding Path=SendFileCommand}"
-                    Content="发送文件" />
+                    Content="{comAssistant:I18n Key=MESSAGE_SEND}"
+                    IsEnabled="{Binding Path=Connected}" />
             </StackPanel>
         </Grid>
-        <components:GroupBox Grid.Row="2" Header="消息接收区">
-            <ScrollViewer>
-                <ItemsControl ItemsSource="{Binding Path=HistoryItems}">
-                    <!--<ItemsControl.ItemTemplate>
-                        <DataTemplate DataType="viewModels:HistoryItem">
-                            <StackPanel>
-                                <TextBlock Text="{Binding Path=Time}" />
-                                <TextBlock Text="{Binding Path=Message}" />
-                            </StackPanel>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>-->
-                </ItemsControl>
-            </ScrollViewer>
-        </components:GroupBox>
     </Grid>
 </UserControl>

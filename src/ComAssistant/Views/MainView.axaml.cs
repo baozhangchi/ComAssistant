@@ -1,4 +1,6 @@
 using Avalonia.Controls;
+using Avalonia.Interactivity;
+using System.Globalization;
 
 namespace ComAssistant.Views;
 

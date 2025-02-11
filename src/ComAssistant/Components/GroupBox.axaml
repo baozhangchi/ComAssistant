@@ -27,7 +27,7 @@
                         StrokeThickness="{TemplateBinding BorderThickness}" />
                     <ContentControl
                         x:Name="PART_Header"
-                        Margin="10,0,0,0"
+                        Margin="0,0,0,0"
                         Padding="5,5,5,5"
                         HorizontalAlignment="Left"
                         VerticalAlignment="Top"
