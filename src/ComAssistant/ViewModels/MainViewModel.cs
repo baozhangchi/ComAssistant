@@ -36,7 +36,7 @@ internal partial class MainViewModel : ViewModelBase
 
     private void SwitchLanguage(string? lan)
     {
-        I18nManager.Instance.Culture = CultureInfo.GetCultureInfo(lan);
+        Lang.I18nManager.Instance.Culture = CultureInfo.GetCultureInfo(lan);
     }
 
     protected override void OnViewLoaded()

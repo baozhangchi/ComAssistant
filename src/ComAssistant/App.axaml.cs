@@ -20,6 +20,7 @@ public class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
+        Lang.I18nManager.Instance.Culture = CultureInfo.CurrentUICulture;
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             // Avoid duplicate validations from both Avalonia and the CommunityToolkit. 

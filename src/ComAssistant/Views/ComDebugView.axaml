@@ -20,17 +20,17 @@
     <Grid RowDefinitions="Auto * 150">
         <StackPanel Orientation="Horizontal">
             <StackPanel IsEnabled="{Binding Path=NotConnected}" Orientation="Horizontal">
-                <Label Content="{comAssistant:I18n Key=COM_PORT_NAME}" />
+                <Label Content="{lang:I18n Key=COM_PORT_NAME}" />
                 <ComboBox ItemsSource="{Binding Path=FreePorts}" SelectedItem="{Binding Path=PortName, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
-                <Label Content="{comAssistant:I18n Key=COM_BAUD_RATES}" />
+                <Label Content="{lang:I18n Key=COM_BAUD_RATES}" />
                 <ComboBox ItemsSource="{Binding Source={x:Static comAssistant:GlobalCache.Instance}, Path=BaudRates}" SelectedItem="{Binding Path=BaudRate, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
-                <Label Content="{comAssistant:I18n Key=COM_DATA_BITS}" />
+                <Label Content="{lang:I18n Key=COM_DATA_BITS}" />
                 <ComboBox ItemsSource="{Binding Source={x:Static comAssistant:GlobalCache.Instance}, Path=DataBitsArray}" SelectedItem="{Binding Path=DataBits, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
-                <Label Content="{comAssistant:I18n Key=COM_PARITY}" />
+                <Label Content="{lang:I18n Key=COM_PARITY}" />
                 <ComboBox ItemsSource="{Binding Source={x:Static comAssistant:GlobalCache.Instance}, Path=ParitySource}" SelectedItem="{Binding Path=Parity, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
-                <Label Content="{comAssistant:I18n Key=COM_STOP_BITS}" />
+                <Label Content="{lang:I18n Key=COM_STOP_BITS}" />
                 <ComboBox ItemsSource="{Binding Source={x:Static comAssistant:GlobalCache.Instance}, Path=StopBitsSource}" SelectedItem="{Binding Path=StopBits, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
-                <Label Content="{comAssistant:I18n Key=COM_ENCODING}" />
+                <Label Content="{lang:I18n Key=COM_ENCODING}" />
                 <ComboBox ItemsSource="{Binding Source={x:Static comAssistant:GlobalCache.Instance}, Path=Encodings}" SelectedItem="{Binding Path=SendEncoding, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}">
                     <ComboBox.ItemTemplate>
                         <DataTemplate DataType="text:Encoding">
@@ -39,14 +39,14 @@
                     </ComboBox.ItemTemplate>
                 </ComboBox>
             </StackPanel>
-            <Button Command="{Binding Path=ConnectCommand}" Content="{comAssistant:I18n Key=COM_CONNECT}" />
-            <Button Command="{Binding Path=DisconnectCommand}" Content="{comAssistant:I18n Key=COM_DISCONNECT}" />
+            <Button Command="{Binding Path=ConnectCommand}" Content="{lang:I18n Key=COM_CONNECT}" />
+            <Button Command="{Binding Path=DisconnectCommand}" Content="{lang:I18n Key=COM_DISCONNECT}" />
         </StackPanel>
         <Grid Grid.Row="1" ColumnDefinitions="* Auto">
             <components:GroupBox>
                 <components:GroupBox.Header>
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock VerticalAlignment="Center" Text="{comAssistant:I18n Key=MESSAGE_HISTORY}" />
+                        <TextBlock VerticalAlignment="Center" Text="{lang:I18n Key=MESSAGE_HISTORY}" />
                     </StackPanel>
                 </components:GroupBox.Header>
                 <ScrollViewer>
@@ -67,12 +67,12 @@
                     HorizontalAlignment="Stretch"
                     HorizontalContentAlignment="Center"
                     Command="{Binding Path=ClearHistoryCommand}"
-                    Content="{comAssistant:I18n Key=MESSAGE_HISTORY_CLEAR}" />
+                    Content="{lang:I18n Key=MESSAGE_HISTORY_CLEAR}" />
                 <Button
                     HorizontalAlignment="Stretch"
                     HorizontalContentAlignment="Center"
                     Command="{Binding Path=SendCommand}"
-                    Content="{comAssistant:I18n Key=MESSAGE_SEND}"
+                    Content="{lang:I18n Key=MESSAGE_SEND}"
                     IsEnabled="{Binding Path=Connected}" />
             </StackPanel>
         </Grid>

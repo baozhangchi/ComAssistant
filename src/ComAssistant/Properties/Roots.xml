@@ -3,5 +3,6 @@
 	<assembly fullname="ComAssistant">
 		<type fullname="ComAssistant.ViewModels*" preserve="all"/>
 		<type fullname="ComAssistant.Views*" preserve="all"/>
+		<type fullname="ComAssistant.Lang*" preserve="all"/>
 	</assembly>
 </linker>

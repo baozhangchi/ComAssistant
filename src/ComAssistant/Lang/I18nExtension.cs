@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Globalization;
-using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Data.Converters;
 using Avalonia.Markup.Xaml;
-using ComAssistant.Lang;
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace ComAssistant;
+namespace ComAssistant.Lang;
 
 internal class I18nExtension
 {
@@ -27,7 +24,7 @@ internal class I18nBinding : Binding
     public I18nBinding(object key)
     {
         Source = I18nManager.Instance;
-        Path = nameof(I18nManager.Culture);
+        Path = nameof(ComAssistant.Lang.I18nManager.Culture);
         Converter = CultureConverter.Instance;
         ConverterParameter = key;
     }
@@ -65,6 +62,5 @@ internal partial class I18nManager : ObservableObject
 
     partial void OnCultureChanged(CultureInfo value)
     {
-
     }
 }
